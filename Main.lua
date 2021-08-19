@@ -163,7 +163,6 @@ end;
 local oldSend = spRemoteEvent.fire_event_to_server;
 spRemoteEvent.fire_event_to_server = function(self, remote, ...)
     if (remote == networkIds.EVT_EventReport_ClientExploitDetected) then
-        logger:warn("Ban attempt detected.");
         return;
     end;
 
