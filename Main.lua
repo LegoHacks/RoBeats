@@ -13,6 +13,7 @@ local getprotos = getprotos;
 local getreg = getreg;
 local getupvalue = getupvalue;
 local getupvalues = getupvalues;
+local makefolder = makefolder;
 local is_synapse_function = is_synapse_function;
 local loadfile = loadfile;
 local pcall = pcall;
@@ -23,6 +24,7 @@ local typeof = typeof;
 -- Install Belkworks and load library
 if (not NEON) then
     if (not isfile("neon/init.lua")) then
+        makefolder("neon");
         writefile("neon/init.lua", game:HttpGet("https://raw.githubusercontent.com/belkworks/neon/master/init.lua"));
     end;
     pcall(loadfile("neon/init.lua"));
