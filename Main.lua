@@ -31,7 +31,7 @@ if (not NEON) then
 end;
 
 local quick = NEON:github("belkworks", "quick");
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/LegoHacks/Utilities/main/UI.lua"))(); -- Too lazy to use NEON to load the library
+local library = NEON:github("LegoHacks", "Utilities", "UI.lua");
 
 -- Auto updater
 local client = quick.Service.Players.LocalPlayer;
@@ -341,7 +341,6 @@ local roBeats = library:CreateWindow("RoBeats"); do
                     end;
 
                     getupvalue(songDatabase.add_key_to_data, 1):add(song, storedSongs[title]);
-                    storedSongs[title].__key = song;
                     return oldPressed(self, song);
                 end;
 
