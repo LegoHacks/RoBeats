@@ -323,8 +323,6 @@ local roBeats = library:CreateWindow("RoBeats"); do
                     local actualSong = tonumber(song);
                     song = defaultSong;
 
-                    local songName = songDatabase:key_to_name(song);
-                    local actualName = songDatabase:key_to_name(actualSong);
                     local title = songDatabase:get_title_for_key(actualSong);
 
                     if (not storedSongs[title]) then
