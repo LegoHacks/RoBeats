@@ -37,6 +37,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/LegoH
 local client = quick.Service.Players.LocalPlayer;
 local mainClient, spRemoteEvent, gameJoin, lobbyJoin; do
     -- Scan registry for dependencies
+    local hookedBlob = false;
     for i, v in next, getreg() do
         if (typeof(v) == "function" and not is_synapse_function(v) and #getupvalues(v) == 1 and getinfo(v).short_src:find("LocalMain")) then
             -- local mainClient = getupvalue(getupvalue(v, 1), 8);
@@ -44,8 +45,16 @@ local mainClient, spRemoteEvent, gameJoin, lobbyJoin; do
             mainClient = quick.find(getupvalues(mainClosure), function(upv)
                 return (typeof(upv) == "table" and rawget(upv, "_evt"));
             end);
-            break;
+        elseif (typeof(v) == "table" and rawget(v, "new") and table_find(getconstants(v.new), "on_songkey_pressed")) then
+            songModule = v;
+        elseif (typeof(v) == "table" and rawget(v, "playerblob_has_vip_for_current_day")) then
+            v.playerblob_has_vip_for_current_day = function()
+                return library.flags.unlockAll;
+            end;
+            hookedBlob = true;
         end;
+
+        if (mainClient and songModule and hookedBlob) then break end;
     end;
 
     -- Get other dependencies from main client script
@@ -64,10 +73,6 @@ end;
 local gameLocal = getupvalue(gameJoin.load_game, 9);
 local trackSystem = getupvalue(gameLocal.new, 18);
 local networkIds = quick.findWhere(getupvalues(spRemoteEvent.server_generate_encodings), {EVT_TEST = 0});
-
-local menus = quick.find(getupvalues(mainClient._menus.menu_count), function(upv)
-    return (typeof(upv) == "table" and rawget(upv, "find"));
-end);
 
 local lobbyLocal = quick.find(getupvalues(lobbyJoin.setup_lobby), function(upv)
     return (typeof(upv) == "table" and rawget(upv, "destroy_unstarted_game_and_exit_to_lobby"));
@@ -92,8 +97,6 @@ end);
 local songDatabase = quick.find(getupvalues(gameJoin.start_game_tutorial_mode), function(upv)
     return (typeof(upv) == "table" and rawget(upv, "new") and table_find(getconstants(upv.new), "name_to_key"));
 end).singleton();
-
-local playerBlob = lobbyLocal._player_blob_manager:get_player_blob();
 
 -- Enums
 local note_score_enums = {
@@ -301,6 +304,50 @@ local roBeats = library:CreateWindow("RoBeats"); do
         flag = "miss";
         min = 0;
         max = 100;
+    });
+
+    local storedSongs = {};
+    -- this code is bad and rushed but it's not my problem :sunglasses:
+    roBeats:AddButton({
+        text = "Unlock all songs";
+        callback = function()
+            if (library.flags.unlockAll) then return end; library.flags.unlockAll = true;
+            local defaultSong = songDatabase:name_to_key("MondayNightMonsters1");
+
+            local oldNew = songModule.new;
+            songModule.new = function(...)
+                local songSystem = oldNew(...);
+                local oldPressed = songSystem.on_songkey_pressed;
+
+                songSystem.on_songkey_pressed = function(self, song)
+                    local actualSong = tonumber(song);
+                    song = defaultSong;
+
+                    local songName = songDatabase:key_to_name(song);
+                    local actualName = songDatabase:key_to_name(actualSong);
+                    local title = songDatabase:get_title_for_key(actualSong);
+
+                    if (not storedSongs[title]) then
+                        for i, v in next, getreg() do
+                            if (typeof(v) == "table" and rawget(v, "HitObjects")) then
+                                storedSongs[v.AudioFilename] = v;
+
+                                if (v.AudioFilename == title) then
+                                    storedSongs[title] = v;
+                                    break;
+                                end;
+                            end;
+                        end;
+                    end;
+
+                    getupvalue(songDatabase.add_key_to_data, 1):add(song, storedSongs[title]);
+                    storedSongs[title].__key = song;
+                    return oldPressed(self, song);
+                end;
+
+                return songSystem;
+            end;
+        end;
     });
 end;
 
