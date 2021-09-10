@@ -327,13 +327,9 @@ local roBeats = library:CreateWindow("RoBeats"); do
 
                     if (not storedSongs[title]) then
                         for i, v in next, getreg() do
-                            if (typeof(v) == "table" and rawget(v, "HitObjects")) then
-                                storedSongs[v.AudioFilename] = v;
-
-                                if (v.AudioFilename == title) then
-                                    storedSongs[title] = v;
-                                    break;
-                                end;
+                            if (typeof(v) == "table" and rawget(v, "HitObjects") and v.AudioFilename == title) then
+                                storedSongs[title] = v;
+                                break;
                             end;
                         end;
                     end;
