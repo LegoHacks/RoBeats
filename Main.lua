@@ -1,6 +1,6 @@
 --[[
     RoBeats (hi Spotco :D)
-    um also Sowd Hub releasing soon!!!!!!!
+    rAnDoM FuNcTiOn nAmEs mAkE It hArD To aUtO PlAy (only for retards)
 
     By Spencer#0003
 ]]
@@ -175,27 +175,49 @@ spRemoteEvent.fire_event_to_server = function(self, remote, ...)
 end;
 
 -- Hook score manager & delta randomiser
--- local scoreManagerNew = scoreManager.new;
--- scoreManager.new = function(...)
---     local random = Random.new();
---     local sManager = scoreManagerNew(...);
---     local postData = getinfo(quick.find(sManager, function(func)
---         return (getinfo(func).name:match("^_%w+"));
---     end)).name;
+local noteBounds = { -- this probably doesn't work at all but it's a start
+    PERFECT = { Low = 180, High = 500 };
+    GREAT = { Low = 750, High = 950 };
+    OKAY = { Low = 1500, High = 2080 };
+};
 
---     local oldPostData = sManager[postData];
---     sManager[postData] = function(self, ...)
---         local args = {...};
+local scoreManagerNew = scoreManager.new;
+scoreManager.new = function(...)
+    local random = Random.new();
+    local sManager = scoreManagerNew(...);
+    local postData = getinfo(quick.find(sManager, function(func)
+        return (getinfo(func).name:match("^_%w+"));
+    end)).name;
+    
+    local oldPostData = sManager[postData];
+    sManager[postData] = function(self, ...)
+        local args = {...};
 
---         if (library.flags.autoPlayer and args[5].Delta) then
---             args[5].Delta = -(random:NextNumber(180, 500) / 10);
---         end;
+        if (library.flags.autoPlayer and args[5].Delta) then
+            local bounds; do
+                for i, v in next, noteBounds do
+                    if (library.flags.noteType == note_score_enums.PERFECT) then
+                        bounds = noteBounds.PERFECT;
+                    elseif (library.flags.noteType == note_score_enums.GREAT) then
+                        bounds = noteBounds.GREAT;
+                    elseif (library.flags.noteType == note_score_enums.OKAY) then
+                        bounds = noteBounds.OKAY;
+                    end;
 
---         return oldPostData(self, unpack(args));
---     end;
+                    if (bounds) then break end;
+                end;
+            end;
 
---     return sManager;
--- end;
+            if (bounds) then
+                args[5].Delta = (library.flags.randomisation and -(random:NextNumber(bounds.Low, bounds.High) / 10) or args[5].Delta);
+            end;
+        end;
+
+        return oldPostData(self, unpack(args));
+    end;
+
+    return sManager;
+end;
 
 -- Get note type
 local note_result_map = {
@@ -210,7 +232,8 @@ local function getNoteType()
 
     for i, v in next, {library.flags.perfect, library.flags.great, library.flags.okay} do
         if (r:NextNumber(0, 100) <= v) then
-            return note_result_map[i];
+            library.flags.noteType = note_result_map[i];
+            return library.flags.noteType;
         end;
     end;
 
@@ -276,6 +299,11 @@ local roBeats = library:CreateWindow("RoBeats"); do
     roBeats:AddToggle({
         text = "Enabled";
         flag = "autoPlayer";
+    });
+
+    roBeats:AddToggle({
+        text = "Delta Randomiser (WIP)";
+        flag = "randomisation";
     });
 
     roBeats:AddSlider({
