@@ -31,7 +31,7 @@ if (not NEON) then
 end;
 
 local quick = NEON:github("belkworks", "quick");
-local library = NEON:github("LegoHacks", "Utilities", "UI.lua");
+local library = loadstring(game:HttpGet'https://raw.githubusercontent.com/LegoHacks/Utilities/main/UI.lua')(); -- NEON updated or something and broke loading the lib? Manual loadstring tbh
 
 -- Auto updater
 local client = quick.Service.Players.LocalPlayer;
