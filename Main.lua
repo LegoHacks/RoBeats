@@ -5,7 +5,9 @@
     By Spencer#0003
 ]]
 
-game:GetService("Players").LocalPlayer:Kick("\nPatched, can't be fucked to fix.\nDon't buy Sowd Hub, it's a huge scam.\nApply for Edge Revamp tbh.");
+if (true) then
+    return game.Players.LocalPlayer:Kick'\nThis script is patched. An unpatched version can be found in my hub (https://acedia.cc/discord).';
+end;
 
 local game = game;
 local getinfo = getinfo;
